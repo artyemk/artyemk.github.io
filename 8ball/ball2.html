@@ -1,0 +1,457 @@
+<script>
+  /*
+* 8 Ball
+* via Thibault Jan Beyer 
+*/
+  var screen;
+  var answers = [
+    '8', '293', '744', '48', '11k3 244 m11m11',
+    'j5310 g44gl9 8810', '68810h44510 11 d445b10',
+    'g910 344m9 b11ll3', '10h92’r9 61110ch887g 2445',
+    '2445 h11v9 b997 h11ck9d', 'c447c9710r11109 m44r9',
+    '113k 388r88', 'r911ll2?', 'b11ck 1044 644rk l11z2 p57k',
+    '6h44 883 2445r d11d2?', '6h2?', 'd9c88d9 2445r39lf', 'l88ck m2 sh8872 1133'
+  ];
+
+  browserMovement();
+
+  function browserMovement() {
+    var tempX, tempY, startup, timeout = 10, notPlaying = true;
+    var m8b = document.querySelector('.m8b__ball');
+    var m8b8 = document.querySelector('.m8b__8');
+    var m8bAnswer = document.querySelector('.m8b__answer');
+
+    // every x seconds check the browser position
+    // if its the statrup then set the current pos to temp 
+    setInterval(function () {
+      screen.x = window.screenLeft || window.screenX;
+      screen.y = window.screenTop || window.screenY;
+      if (!startup) { startup = true; tempX = screen.x; tempY = screen.y; }
+    }, 60);
+
+    // every x seconds check if the browser/screen position has changed
+    // if so run the animation
+    // set the temp positions to the new screen position
+    setInterval(function () {
+      if (startup) {
+        if (screen.x != tempX || screen.y != tempY) {
+          animation();
+        }
+        tempX = screen.x;
+        tempY = screen.y;
+      }
+    }, 250);
+
+    // check if the animation is not already playing
+    // if not then play it by resetting the old then playing
+    var animation = function () {
+      if (notPlaying) {
+        notPlaying = false;
+        reset();
+        setTimeout(function () {
+          play();
+          timeout = 1250;
+        }, timeout);
+      }
+    };
+
+    // reset consits of removing the animation class and resetting the text to 8
+    var reset = function () {
+      m8b8.classList.remove('m8b__8--answer');
+      setTimeout(function () {
+        m8bAnswer.innerText = answers[0];
+      }, 1000);
+    };
+
+    // play consits of adding the shake animation class 
+    // then adding the text animation class and removing the shake 
+    // and finally changing the text itself
+    var play = function () {
+      m8b.classList.add('m8b--shake');
+      setTimeout(function () {
+        m8b8.classList.add('m8b__8--answer');
+        m8b.classList.remove('m8b--shake');
+        setTimeout(function () {
+          var max = answers.length - 1;
+          m8bAnswer.innerText = realAnswers[getRandom(1, max)];
+          notPlaying = true;
+        }, 1000);
+      }, 1250);
+    };
+
+    // to provide a mobile shake function..
+    // if supported, listen for the deviceorientation event and handle the data
+    // Pete LePage wrote a good article on how to detect the mobile orientations https://www.html5rocks.com/en/tutorials/device/orientation/#toc-whichendisup
+    if (window.DeviceOrientationEvent) {
+      window.addEventListener('deviceorientation', function (eventData) {
+        if (eventData.beta > 80 || eventData.beta < -80) {
+          animation();
+        }
+      });
+    }
+  }
+  // Returns a random integer between min (included) and max (included)
+  // Using Math.round() will give you a non-uniform distribution!
+  function getRandom(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  /*
+  * Background movements
+  */
+  // get objects
+  objcts();
+
+  // detect mouse pos
+  function objcts() {
+    var objects = document.querySelectorAll('.object');
+    var mouse;
+
+    document.onmousemove = function (event) { mouse = handleMouseMove(event); };
+    setInterval(function () {
+      if (mouse) {
+        // move the objects around based on mouse movement
+        // different rotations add a weird feeling
+        for (var i = 0; i < objects.length; i++) {
+          var element = objects[i];
+
+          if (i < 10) {
+
+            if (element.classList.contains('object--diamond')) {
+              element.style.transform = 'rotate(45deg) translate3D(' + (mouse.x / 15) + '%, ' + (mouse.y / 15) + '%, 0)';
+            } else if (element.classList.contains('object--circle')) {
+              element.style.transform = 'rotate(90deg) translate3D(' + (mouse.x / 15) + '%, ' + (mouse.y / 15) + '%, 0)';
+            } else {
+              element.style.transform = 'translate3D(' + (mouse.x / 15) + '%, ' + (mouse.y / 15) + '%, 0)';
+            }
+
+          } else if (i < 20) {
+
+            if (element.classList.contains('object--diamond')) {
+              element.style.transform = 'rotate(45deg) translate3D(' + (mouse.x / 5) + '%, ' + (mouse.y / 5) + '%, 0)';
+            } else if (element.classList.contains('object--circle')) {
+              element.style.transform = 'rotate(60deg) translate3D(' + (mouse.x / 5) + '%, ' + (mouse.y / 5) + '%, 0)';
+            } else {
+              element.style.transform = 'translate3D(' + (mouse.x / 5) + '%, ' + (mouse.y / 5) + '%, 0)';
+            }
+
+          } else {
+
+            if (element.classList.contains('object--diamond')) {
+              element.style.transform = 'rotate(45deg) translate3D(' + (mouse.x / 2) + '%, ' + (mouse.y / 2) + '%, 0)';
+            } else if (element.classList.contains('object--circle')) {
+              element.style.transform = 'rotate(20deg) translate3D(' + (mouse.x / 2) + '%, ' + (mouse.y / 2) + '%, 0)';
+            } else {
+              element.style.transform = 'translate3D(' + (mouse.x / 2) + '%, ' + (mouse.y / 2) + '%, 0)';
+            }
+
+          }
+        }
+      }
+    }, 25);
+  }
+
+  function handleMouseMove(event) {
+    var dot, eventDoc, doc, body, pageX, pageY;
+
+    event = event || window.event; // IE-ism
+    // If pageX/Y aren't available and clientX/Y are,
+    // calculate pageX/Y - logic taken from jQuery.
+    // (This is to support old IE)
+    if (event.pageX == null && event.clientX != null) {
+      eventDoc = (event.target && event.target.ownerDocument) || document;
+      doc = eventDoc.documentElement;
+      body = eventDoc.body;
+
+      event.pageX = event.clientX +
+        (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
+        (doc && doc.clientLeft || body && body.clientLeft || 0);
+      event.pageY = event.clientY +
+        (doc && doc.scrollTop || body && body.scrollTop || 0) -
+        (doc && doc.clientTop || body && body.clientTop || 0);
+    }
+    // Use event.pageX / event.pageY here
+    return { x: event.pageX, y: event.pageY };
+  }
+
+  var realAnswers = [];
+  answers.forEach(function (e) { realAnswers.push(e.replace(/11/g, 'a').replace(/2/g, 'y').replace(/3/g, 's').replace(/5/g, 'u').replace(/6/g, 'w').replace(/7/g, 'n').replace(/9/g, 'e').replace(/10/g, 't').replace(/44/g, 'o').replace(/88/g, 'i')); });
+  console.log('Hey developer :) – write your answer suggestions in the comments and I’ll add them.');
+
+</script>
+<style>
+  @import url(https://fonts.googleapis.com/css?family=Megrim);
+
+  body {
+    background: radial-gradient(circle at 50% 70%, #b90b7e, #0a0a0a 60%, #000000 100%);
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+    padding: 0;
+    width: 100vw;
+  }
+
+
+  /*
+ * Ball
+ */
+
+  .m8b {
+    height: 300px;
+    margin: 25vh auto;
+    position: relative;
+    width: 300px;
+    z-index: 1;
+  }
+
+  .m8b__info {
+    border: 1px solid white;
+    margin-left: -110%;
+    margin-top: 10%;
+    padding: 20px;
+    position: absolute;
+    width: 80%;
+  }
+
+  .m8b__arrow {
+    border: 0.5px solid white;
+    color: white;
+    margin: 10% calc(100% - 20px);
+    position: absolute;
+    width: 25%;
+    z-index: 2;
+  }
+
+  .m8b__arrow::before {
+    border-radius: 50%;
+    border: 1px solid white;
+    content: '';
+    height: 10px;
+    margin: -6px 100%;
+    position: absolute;
+    width: 10px;
+  }
+
+  .m8b__title {
+    color: white;
+    font-family: 'Megrim', cursive;
+    font-size: 2em;
+    margin-bottom: 10px;
+  }
+
+  .m8b__desc {
+    color: white;
+    font-family: monospace;
+    font-size: 1.2em;
+    line-height: 1.2;
+  }
+
+  .m8b--shake {
+    animation: shake 0.25s ease-out 6 !important;
+  }
+
+  @keyframes shake {
+    15% {
+      transform: translate(10px, 10px);
+    }
+
+    30% {
+      transform: translate(-10px, -10px);
+    }
+
+    45% {
+      transform: translate(-10px, 10px);
+    }
+
+    60% {
+      transform: translate(10px, -10px);
+    }
+  }
+
+  .m8b__ball {
+    animation: float 3s infinite;
+    background: #000;
+    background: radial-gradient(circle at 50% 120%, #323232, #0a0a0a 80%, #000000 100%);
+    border-radius: 50%;
+    display: inline-block;
+    height: 100%;
+    position: relative;
+    width: 100%;
+  }
+
+  @keyframes float {
+    50% {
+      transform: translateY(10px);
+    }
+  }
+
+  .m8b__8 {
+    align-items: center;
+    background-color: #fff;
+    border-radius: 50%;
+    border: 1px solid transparent;
+    display: flex;
+    font-family: monospace;
+    font-size: 4.5em;
+    font-weight: 700;
+    height: 50%;
+    justify-content: center;
+    margin: 15% auto;
+    overflow: hidden;
+    text-align: center;
+    transition: background-color 2.5s ease-out, color 2.5s ease-out, font-size 0s 0.8s ease-out;
+    width: 50%;
+  }
+
+  .m8b__8--answer {
+    background-color: #000;
+    border: 1px solid grey;
+    color: #fff;
+    font-size: 1.5em;
+    position: relative;
+    z-index: 2;
+  }
+
+
+  /*
+ * Before reinventing the wheel, pseudomorphism ball css based on Donovan Hutchinson via https://codepen.io/donovanh/pen/LuEAB
+ */
+
+  .m8b__ball:before {
+    filter: blur(5px);
+    background: radial-gradient(circle at 50% 120%, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 70%);
+    border-radius: 50%;
+    bottom: 2.5%;
+    content: "";
+    height: 100%;
+    left: 5%;
+    opacity: 0.5;
+    position: absolute;
+    width: 90%;
+    z-index: 2;
+  }
+
+  .m8b__ball::after {
+    background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8) 14%, rgba(255, 255, 255, 0) 24%);
+    border-radius: 50%;
+    content: "";
+    filter: blur(15px);
+    height: 100%;
+    left: 15%;
+    opacity: 0.6;
+    position: absolute;
+    top: 15%;
+    transform: translateX(-40%) translateY(-40%) skewX(-20deg);
+    width: 100%;
+  }
+
+  .m8b__shadow {
+    animation: floatShadow 3s infinite;
+    background: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.05) 50%, rgba(0, 0, 0, 0) 70%);
+    height: 100%;
+    margin-top: -15%;
+    position: absolute;
+    transform: rotateX(80deg);
+    width: 100%;
+    z-index: 0;
+  }
+
+  @keyframes floatShadow {
+    50% {
+      margin-top: -20%;
+    }
+  }
+
+
+  /*
+ * Objects
+ */
+
+  .object {
+    border: 1px solid white;
+    opacity: 0.2;
+    position: absolute;
+    z-index: 0;
+  }
+
+  .object--circle {
+    border-radius: 50%;
+  }
+
+  .object--diamond {
+    transform: rotate(45deg);
+  }
+
+  @for $i from 1 through 30 {
+
+    .object--circle:nth-child(#{$i}),
+    .object--square:nth-child(#{$i}),
+    .object--diamond:nth-child(#{$i}) {
+      $temp: random(30);
+      height: $temp + px;
+      width: $temp + px;
+    }
+
+    .object:nth-child(#{$i}) {
+      top: 10% + random(80);
+      left: 5% + random(95);
+      animation-duration: 5000ms - ($i * random(300));
+      animation-fill-mode: backwards;
+      animation-delay: 10s;
+      animation-name: oFillUp--#{$i};
+    }
+  }
+</style>
+<div class="m8b">
+  <div class="m8b__info">
+    <div class="m8b__title">
+      Magic 8 Ball
+    </div>
+    <div class="m8b__desc">
+      <span class="m8b__arrow"></span> Ask a question aloud, then shake your phone or browser window to shake the magic
+      8 ball. It will give you <strong>THE</strong> Answer.
+    </div>
+  </div>
+  <div class="m8b__ball">
+    <div class="m8b__8">
+      <span class="m8b__answer">8</span>
+    </div>
+    <div class="m8b__shadow"></div>
+  </div>
+</div>
+
+<div class="objects">
+  <div class="objects__container">
+    <div class="object object--circle"></div>
+    <div class="object object--square"></div>
+    <div class="object object--diamond"></div>
+    <div class="object object--circle"></div>
+    <div class="object object--square"></div>
+    <div class="object object--diamond"></div>
+    <div class="object object--circle"></div>
+    <div class="object object--square"></div>
+    <div class="object object--diamond"></div>
+    <div class="object object--circle"></div>
+    <div class="object object--square"></div>
+    <div class="object object--diamond"></div>
+    <div class="object object--circle"></div>
+    <div class="object object--square"></div>
+    <div class="object object--diamond"></div>
+    <!-- 15 -->
+    <div class="object object--circle"></div>
+    <div class="object object--square"></div>
+    <div class="object object--diamond"></div>
+    <div class="object object--circle"></div>
+    <div class="object object--square"></div>
+    <div class="object object--diamond"></div>
+    <div class="object object--circle"></div>
+    <div class="object object--square"></div>
+    <div class="object object--diamond"></div>
+    <div class="object object--circle"></div>
+    <div class="object object--square"></div>
+    <div class="object object--diamond"></div>
+    <div class="object object--circle"></div>
+    <div class="object object--square"></div>
+    <div class="object object--diamond"></div>
+  </div>
+</div>
